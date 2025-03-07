@@ -47,50 +47,118 @@ class MyAppState extends ChangeNotifier {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  var selectedIndex = 0;
+  
+  @override
+  Widget build(BuildContext context) {
+
+    Widget page;
+    switch (selectedIndex) 
+    {
+      case 0:
+        page = GeneratorPage();
+        break;
+
+      case 1:
+        page = Placeholder();
+        break;
+
+      default:
+        throw UnimplementedError("That is not a valid page selection.");
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) { // this layout builder will be called whenever user updates window size
+        return Scaffold(
+          body: Row(
+            children: [
+              SafeArea(
+                child: NavigationRail(
+                  extended: constraints.maxWidth >= 600, // extend labels if screen width GToE to 600
+                  destinations: [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.home),
+                      label: Text('Home'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.favorite),
+                      label: Text('Favorites'),
+                    ),
+                  ],
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: (value) {
+                    setState(() {
+                      print("set state $value");
+                      selectedIndex = value;
+                      print("set after $selectedIndex");
+                    });
+                  },
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: page,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    );
+  }
+}
+
+class GeneratorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
-    var currentPair = appState.current;
+    var pair = appState.current;
+
     IconData icon;
-    if (appState.favWords.contains(currentPair)) {
+    if (appState.favWords.contains(pair)) {
       icon = Icons.favorite;
     } else {
       icon = Icons.favorite_border;
     }
 
-
-    return Scaffold(
-        body: Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('Look at my app, you'),
-          BigCard(currentPair: currentPair),
-          SizedBox(
-            height: 10,
-          ),
+          BigCard(currentPair: pair),
+          SizedBox(height: 10),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               ElevatedButton.icon(
-                  onPressed: () {
-                    appState.toggleFavorite();
-                  },
-                  icon: Icon(icon),
-                  label: Text('Like')),
-            ElevatedButton(
-              onPressed: () {
-                appState.getNext();
-              },
-              child: Text('Next')),
+                onPressed: () {
+                  appState.toggleFavorite();
+                },
+                icon: Icon(icon),
+                label: Text('Like'),
+              ),
+              SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: () {
+                  appState.getNext();
+                },
+                child: Text('Next'),
+              ),
             ],
           ),
         ],
       ),
-    ));
+    );
   }
 }
+
 
 class BigCard extends StatelessWidget {
   const BigCard({
